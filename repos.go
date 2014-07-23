@@ -1,8 +1,10 @@
 package bitbucket
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -141,4 +143,63 @@ func (r RepositoryService) GetWatchers(owner, repo string) (*Watchers, error) {
 	fmt.Println(resp)
 
 	return &data, nil
+}
+
+// TODO(ttacon): ughness everywhere, As Lorde says, "I'm getting ready to throw my hands up in the air"
+func (r RepositoryService) CreateRepository(owner string, repo *Repository) (*Watchers, error) {
+	if repo == nil {
+		return nil, fmt.Errorf("repo cannot be nil")
+	}
+
+	buf := new(bytes.Buffer)
+	if err := json.NewEncoder(buf).Encode(repo); err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST",
+		fmt.Sprintf("%s/repositories/%s/%s", V2_URL, owner, repo.Name),
+		buf)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("%#v\n", *resp)
+
+	//	var data map[string]interface{}
+	bs, err := ioutil.ReadAll(resp.Body)
+	fmt.Println("err: ", err)
+	fmt.Println("body: ", string(bs))
+	/*
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println(data)
+	*/
+
+	return nil, nil
+}
+
+// TODO(ttacon): add auth
+func (r RepositoryService) DeleteRepository(owner, repo string) error {
+	req, err := http.NewRequest("DELETE",
+		fmt.Sprintf("%s/repositories/%s/%s", V2_URL, owner, repo),
+		nil)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	fmt.Println(resp)
+	return nil
 }

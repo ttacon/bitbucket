@@ -1,5 +1,7 @@
 package bitbucket
 
+// TODO(ttacon): change name of Owner to user or something similar
+
 type Owner struct {
 	Username    string `json:"username"`
 	DisplayName string `json:"display_name"`
@@ -15,6 +17,15 @@ type Links struct {
 	Forks        Link        `json:"forks"`
 	Clone        []CloneLink `json:"clone"`
 	PullRequests Link        `json:"pullrequests"`
+
+	// Links for pull requests
+	Comments Link `json:"comments"`
+	Patch    Link `json:"patch"`
+	Merge    Link `json:"merge"`
+	Activity Link `json:"activity"`
+	Diff     Link `json:"diff"`
+	Approve  Link `json:"approve"`
+	Decline  Link `json:"decline"`
 }
 
 type Link struct {

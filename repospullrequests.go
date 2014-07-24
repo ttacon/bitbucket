@@ -21,11 +21,6 @@ type Destination struct {
 	Branch     Branch     `json:"branch"`
 }
 
-type Commit struct {
-	Hash  string `json:"hash"`
-	Links Links  `json:"links"`
-}
-
 type Branch struct {
 	Name string `json:"name"`
 }
@@ -112,6 +107,56 @@ func (r RepositoryService) GetPullRequest(owner, repo, requestId string) (*PullR
 	}
 
 	var data PullRequest
+	err = json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &data, nil
+}
+
+type Commit struct {
+	Hash       string     `json:"hash"`
+	Links      Links      `json:"links"`
+	Repository Repository `json:"repository"`
+	Author     Author     `json:"author"`
+	Parents    []Commit   `json:"parents"`
+	Date       string     `json:"date"`
+	Message    string     `json:"message"`
+}
+
+type Author struct {
+	Raw  string `json:"raw"`
+	User Owner  `json:"user"`
+}
+
+type Commits struct {
+	PageLen int      `json:"page_len"`
+	Next    string   `json:"next"`
+	Values  []Commit `json:"values"`
+	Page    int      `json:"page"`
+	Size    int      `json:"size"`
+}
+
+func (r RepositoryService) GetPullRequestCommits(owner, repo, requestId string) (*Commits, error) {
+	req, err := http.NewRequest("GET",
+		fmt.Sprintf("%s/repositories/%s/%s/pullrequests/%s/commits",
+			V2_URL,
+			owner,
+			repo,
+			requestId),
+		nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var data Commits
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
 		return nil, err

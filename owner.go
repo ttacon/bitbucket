@@ -26,6 +26,12 @@ type Links struct {
 	Diff     Link `json:"diff"`
 	Approve  Link `json:"approve"`
 	Decline  Link `json:"decline"`
+
+	// Links for teams
+	Repositories Link `json:"repositories"`
+	Followers    Link `json:"followers"`
+	Members      Link `json:"members"`
+	Following    Link `json:"following"`
 }
 
 type Link struct {

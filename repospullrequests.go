@@ -37,20 +37,28 @@ type Source struct {
 }
 
 type PullRequest struct {
-	Description       string      `json:"description"`
-	Links             Links       `json:"links"`
-	Author            Owner       `json:"author"`
-	CloseSourceBranch bool        `json:"close_source_branch"`
-	Title             string      `json:"title"`
-	Destination       Destination `json:"destination"`
-	Reason            string      `json:"reason"`
-	ClosedBy          *Owner      `json:"closed_by"`
-	Source            Source      `json:"source"`
-	State             string      `json:"state"`
-	CreatedOn         string      `json:"created_on"`
-	UpdatedOn         string      `json:"updated_on"`
-	MergedCommit      *Commit     `json:"merge_commit"`
-	Id                int         `json:"id"`
+	Description       string        `json:"description"`
+	Links             Links         `json:"links"`
+	Author            Owner         `json:"author"`
+	CloseSourceBranch bool          `json:"close_source_branch"`
+	Title             string        `json:"title"`
+	Destination       Destination   `json:"destination"`
+	Reason            string        `json:"reason"`
+	ClosedBy          *Owner        `json:"closed_by"`
+	Source            Source        `json:"source"`
+	State             string        `json:"state"`
+	CreatedOn         string        `json:"created_on"`
+	UpdatedOn         string        `json:"updated_on"`
+	MergedCommit      *Commit       `json:"merge_commit"`
+	Id                int           `json:"id"`
+	Reviewers         []Owner       `json:"reviewers"`
+	Participants      []Participant `json:"participants"`
+}
+
+type Participant struct {
+	User     Owner  `json:"user"`
+	Role     string `json:"role"`
+	Approved bool   `json:"approved"`
 }
 
 func (r RepositoryService) GetPullRequests(owner, repo string, states ...string) (*PullRequests, error) {
@@ -77,6 +85,33 @@ func (r RepositoryService) GetPullRequests(owner, repo string, states ...string)
 	}
 
 	var data PullRequests
+	err = json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &data, nil
+}
+
+func (r RepositoryService) GetPullRequest(owner, repo, requestId string) (*PullRequest, error) {
+	req, err := http.NewRequest("GET",
+		fmt.Sprintf("%s/repositories/%s/%s/pullrequests/%s",
+			V2_URL,
+			owner,
+			repo,
+			requestId),
+		nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var data PullRequest
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
 		return nil, err

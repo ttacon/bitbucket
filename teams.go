@@ -122,3 +122,33 @@ func (t TeamService) GetTeamFollowers(team string) (*TeamFollowers, error) {
 
 	return &data, nil
 }
+
+type TeamRepositories struct {
+	PageLen int          `json:"pagelen"`
+	Page    int          `json:"page"`
+	Size    int          `json:"size"`
+	Values  []Repository `json:"values"`
+}
+
+func (t TeamService) GetTeamRepositories(team string) (*TeamRepositories, error) {
+	req, err := http.NewRequest("GET",
+		fmt.Sprintf("%s/teams/%s/repositories", V2_URL, team),
+		nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var data TeamRepositories
+	err = json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &data, nil
+}

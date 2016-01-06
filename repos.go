@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 type RepositoryService struct {
@@ -161,6 +162,11 @@ func (r RepositoryService) CreateRepository(owner string, repo *Repository) (*Wa
 		buf)
 	if err != nil {
 		return nil, err
+	}
+
+	if user := os.Getenv("BB_USERNAME"); len(user) > 0 {
+		password := os.Getenv("BB_PASSWORD")
+		req.SetBasicAuth(user, password)
 	}
 
 	client := &http.Client{}
